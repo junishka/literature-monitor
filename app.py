@@ -36,7 +36,6 @@ def login_required(f):
 
 @app.before_request
 def load_user():
-    models.init_db()
     g.user = None
     if "user_id" in session:
         g.user = models.get_user_by_id(session["user_id"])
@@ -404,8 +403,13 @@ def nl2br_filter(s):
     return Markup(s.replace("\n", "<br>"))
 
 
-if __name__ == "__main__":
-    models.init_db()
+# Initialize DB and scheduler at import time (needed for gunicorn)
+models.init_db()
+try:
     start_scheduler()
+except Exception as e:
+    logging.warning(f"Scheduler start failed: {e}")
+
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(debug=True, host="0.0.0.0", port=port)
