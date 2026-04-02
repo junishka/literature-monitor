@@ -70,6 +70,12 @@
 
 {% block scripts %}
 <script>
+function updateSaveBtn() {
+  const btn = document.getElementById('save-set-btn');
+  const items = document.querySelectorAll('#selected-journals .journal-item');
+  btn.style.display = items.length > 0 ? 'inline-flex' : 'none';
+}
+
 function searchJournals() {
   const q = document.getElementById('journal-search').value.trim();
   if (!q) return;
@@ -159,14 +165,9 @@ function saveCurrentAsSet() {
   .then(r => r.json())
   .then(data => {
     if (data.error) { alert(data.error); return; }
-    alert('Journal set "' + name + '" saved! It will appear when you create or edit searches.');
+    alert('Journal set "' + name + '" saved!');
+    location.reload();
   });
-}
-
-function updateSaveBtn() {
-  const btn = document.getElementById('save-set-btn');
-  const items = document.querySelectorAll('#selected-journals .journal-item');
-  btn.style.display = items.length > 0 ? 'inline-flex' : 'none';
 }
 
 // Search on Enter key
