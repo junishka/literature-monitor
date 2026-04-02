@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from .scopus_client import Paper
 
-TEMPLATE_DIR = Path(__file__).parent / "templates"
+TEMPLATE_DIR = Path(__file__).parent.parent / "templates" / "email"
 
 
 @dataclass
