@@ -36,6 +36,7 @@
     <div class="form-group">
       <label for="schedule_hour">Time (hour, 24h)</label>
       <input type="number" id="schedule_hour" name="schedule_hour" value="{{ settings.get('schedule_hour', '9') }}" min="0" max="23">
+      <div class="form-hint">UTC time. E.g., 7 = 9am Barcelona, 3 = 9am New York.</div>
     </div>
     <div class="form-group">
       <label for="lookback_days">Initial Lookback (days)</label>
