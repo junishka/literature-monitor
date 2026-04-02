@@ -111,18 +111,31 @@ def run_all_users():
             logger.error(f"Scheduler error for user {user['id']}: {e}")
 
 
-def start_scheduler():
-    """Start the background scheduler."""
+def start_scheduler(frequency="weekly", day="monday", hour=9):
+    """Start or restart the background scheduler with given settings."""
     if scheduler.get_job("lit_monitor_job"):
         scheduler.remove_job("lit_monitor_job")
 
-    # Run weekly on Mondays at 9am (default)
-    scheduler.add_job(run_all_users, "cron", day_of_week="mon", hour=9, id="lit_monitor_job")
+    day_short = day[:3].lower()
+    hour = int(hour)
+
+    if frequency == "daily":
+        scheduler.add_job(run_all_users, "cron", hour=hour, id="lit_monitor_job")
+        desc = f"daily at {hour}:00"
+    elif frequency == "biweekly":
+        scheduler.add_job(run_all_users, "interval", weeks=2, id="lit_monitor_job")
+        desc = "every 2 weeks"
+    elif frequency == "monthly":
+        scheduler.add_job(run_all_users, "cron", day=1, hour=hour, id="lit_monitor_job")
+        desc = f"monthly on the 1st at {hour}:00"
+    else:  # weekly
+        scheduler.add_job(run_all_users, "cron", day_of_week=day_short, hour=hour, id="lit_monitor_job")
+        desc = f"weekly on {day}s at {hour}:00"
 
     if not scheduler.running:
         scheduler.start()
 
-    logger.info("Scheduler started: weekly on Mondays at 9am")
+    logger.info(f"Scheduler started: {desc}")
 
 
 def get_next_run():

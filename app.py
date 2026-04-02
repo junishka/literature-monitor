@@ -312,6 +312,14 @@ def settings():
             value = request.form.get(field, "")
             models.set_setting(user_id, field, value)
 
+        # Restart scheduler with new settings
+        from lit_monitor.scheduler import start_scheduler
+        start_scheduler(
+            frequency=request.form.get("schedule_frequency", "weekly"),
+            day=request.form.get("schedule_day", "monday"),
+            hour=request.form.get("schedule_hour", "9"),
+        )
+
         flash("Settings saved!", "success")
         return redirect(url_for("settings"))
 
@@ -450,7 +458,18 @@ def internal_error(error):
 # Initialize DB and scheduler at import time (needed for gunicorn)
 models.init_db()
 try:
-    start_scheduler()
+    # Try to load schedule settings from first user, fallback to defaults
+    with models.get_db() as conn:
+        first_user = models._fetchone(conn, "SELECT id FROM users LIMIT 1")
+    if first_user:
+        s = models.get_all_settings(first_user["id"])
+        start_scheduler(
+            frequency=s.get("schedule_frequency", "weekly"),
+            day=s.get("schedule_day", "monday"),
+            hour=s.get("schedule_hour", "9"),
+        )
+    else:
+        start_scheduler()
 except Exception as e:
     logging.warning(f"Scheduler start failed: {e}")
 
