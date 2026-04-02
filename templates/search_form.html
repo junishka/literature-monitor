@@ -25,7 +25,7 @@
     <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
       <span style="font-size:13px; color:var(--text-muted); padding:5px 0;">Load saved set:</span>
       {% for js in journal_sets %}
-      <button type="button" onclick='loadJournalSet({{ js.journals | tojson }})' class="btn btn-secondary btn-sm">{{ js.name }}</button>
+      <button type="button" class="btn btn-secondary btn-sm journal-set-btn" data-journals="{{ js.journals | tojson | e }}">{{ js.name }}</button>
       {% endfor %}
     </div>
     {% endif %}
@@ -173,6 +173,14 @@ function saveCurrentAsSet() {
 // Search on Enter key
 document.getElementById('journal-search').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') { e.preventDefault(); searchJournals(); }
+});
+
+// Load journal set buttons
+document.querySelectorAll('.journal-set-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const journals = JSON.parse(this.getAttribute('data-journals'));
+    loadJournalSet(journals);
+  });
 });
 </script>
 {% endblock %}
