@@ -403,6 +403,15 @@ def nl2br_filter(s):
     return Markup(s.replace("\n", "<br>"))
 
 
+# Show errors in production
+@app.errorhandler(500)
+def internal_error(error):
+    import traceback
+    tb = traceback.format_exc()
+    logging.error(f"500 error: {tb}")
+    return f"<h1>Internal Server Error</h1><pre>{tb}</pre>", 500
+
+
 # Initialize DB and scheduler at import time (needed for gunicorn)
 models.init_db()
 try:
