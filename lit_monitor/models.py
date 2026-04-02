@@ -150,12 +150,6 @@ def init_db():
             )
         """)
 
-        # Migration: add pub_date column if missing
-        try:
-            cur.execute("ALTER TABLE seen_papers ADD COLUMN pub_date TEXT DEFAULT ''")
-        except Exception:
-            pass  # Column already exists
-
         cur.execute("""
             CREATE TABLE IF NOT EXISTS settings (
                 key TEXT NOT NULL,
@@ -174,6 +168,14 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+    # Migration: add pub_date column if missing (separate transaction)
+    try:
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute("ALTER TABLE seen_papers ADD COLUMN pub_date TEXT DEFAULT ''")
+    except Exception:
+        pass  # Column already exists
 
 
 # --- Users ---
