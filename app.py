@@ -56,10 +56,29 @@ def health():
         info["db"] = "connected"
         info["use_postgres"] = models.USE_POSTGRES
         info["db_url"] = models.DATABASE_URL[:30] + "..." if models.DATABASE_URL else "sqlite"
+        info["gmail_sender_set"] = bool(os.environ.get("GMAIL_SENDER", ""))
+        info["gmail_password_set"] = bool(os.environ.get("GMAIL_APP_PASSWORD", ""))
     except Exception as e:
         info["db"] = f"error: {e}"
         info["traceback"] = traceback.format_exc()
     return jsonify(info)
+
+
+@app.route("/debug/email")
+@login_required
+def debug_email():
+    """Check email config for current user."""
+    user_id = session["user_id"]
+    s = models.get_all_settings(user_id)
+    sender = os.environ.get("GMAIL_SENDER", "")
+    password = os.environ.get("GMAIL_APP_PASSWORD", "")
+    recipients = s.get("email_recipients", "")
+    return jsonify({
+        "sender": sender[:5] + "..." if sender else "(not set)",
+        "password_set": bool(password),
+        "recipients": recipients,
+        "all_user_settings_keys": list(s.keys()),
+    })
 
 
 # --- Auth routes ---
