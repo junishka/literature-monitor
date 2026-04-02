@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Paper History — Literature Monitor{% endblock %}
+
+{% block content %}
+<h1>Paper History</h1>
+<p style="color:var(--text-muted); margin-bottom:20px;">All papers found across your searches. {{ papers|length }} papers tracked.</p>
+
+{% if papers %}
+<div class="card" style="padding:0;">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:55%;">Title</th>
+        <th>DOI</th>
+        <th>Found</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in papers %}
+      <tr>
+        <td>
+          {% if p.doi %}
+          <a href="https://doi.org/{{ p.doi }}" target="_blank" style="color:var(--primary); text-decoration:none; font-weight:500;">{{ p.title }}</a>
+          {% else %}
+          <span style="font-weight:500;">{{ p.title }}</span>
+          {% endif %}
+        </td>
+        <td style="font-size:12px; color:var(--text-muted);">
+          {% if p.doi %}
+          <a href="https://doi.org/{{ p.doi }}" target="_blank" style="color:var(--text-muted);">{{ p.doi }}</a>
+          {% else %}
+          —
+          {% endif %}
+        </td>
+        <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">{{ p.first_seen[:10] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card empty-state">
+  <p>No papers found yet. Run a search to start tracking papers.</p>
+  <form method="post" action="{{ url_for('run_now') }}">
+    <button type="submit" class="btn btn-primary">Run Now</button>
+  </form>
+</div>
+{% endif %}
+
+{% endblock %}

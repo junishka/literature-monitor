@@ -339,6 +339,13 @@ def get_seen_count(user_id: int) -> int:
         return row["cnt"] if row else 0
 
 
+def get_seen_papers(user_id: int, limit: int = 200) -> list[dict]:
+    with get_db() as conn:
+        return _fetchall(conn,
+            f"SELECT paper_id, title, doi, first_seen FROM seen_papers WHERE user_id = {_ph()} ORDER BY first_seen DESC LIMIT {_ph()}",
+            (user_id, limit))
+
+
 def reset_seen_papers(user_id: int):
     with get_db() as conn:
         _execute(conn, f"DELETE FROM seen_papers WHERE user_id = {_ph()}", (user_id,))

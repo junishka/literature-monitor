@@ -208,6 +208,16 @@ def delete_search(search_id):
     return redirect(url_for("index"))
 
 
+# --- Paper History ---
+
+@app.route("/papers")
+@login_required
+def paper_history():
+    user_id = session["user_id"]
+    papers = models.get_seen_papers(user_id, limit=200)
+    return render_template("papers.html", papers=papers)
+
+
 # --- Journals ---
 
 @app.route("/journals")
