@@ -402,18 +402,22 @@ def view_digest(digest_id):
 @app.route("/run", methods=["POST"])
 @login_required
 def run_now():
+    """Show loading page, then redirect to run-execute."""
+    return render_template("running.html")
+
+
+@app.route("/run/execute")
+@login_required
+def run_execute():
+    """Actually run the search (called via fetch from the loading page)."""
     import traceback
     try:
         total = run_searches_for_user(session["user_id"])
-        if total > 0:
-            flash(f"Found {total} new paper{'s' if total != 1 else ''}! Check Digests.", "success")
-        else:
-            flash("No new papers found.", "info")
+        return jsonify({"status": "ok", "total": total})
     except Exception as e:
         tb = traceback.format_exc()
         logging.error(f"Run failed: {tb}")
-        flash(f"Search failed: {e}", "error")
-    return redirect(url_for("index"))
+        return jsonify({"status": "error", "message": str(e)})
 
 
 # --- Template filter ---
