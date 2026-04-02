@@ -25,7 +25,7 @@
     <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
       <span style="font-size:13px; color:var(--text-muted); padding:5px 0;">Load saved set:</span>
       {% for js in journal_sets %}
-      <button type="button" onclick="loadJournalSet({{ js.journals | tojson | e }})" class="btn btn-secondary btn-sm">{{ js.name }}</button>
+      <button type="button" onclick='loadJournalSet({{ js.journals | tojson }})' class="btn btn-secondary btn-sm">{{ js.name }}</button>
       {% endfor %}
     </div>
     {% endif %}
