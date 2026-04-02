@@ -2,11 +2,11 @@
 {% block title %}Dashboard — Literature Monitor{% endblock %}
 
 {% block content %}
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-  <h1>Dashboard</h1>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+  <h1 style="margin-bottom:0;">Dashboard</h1>
   <div class="actions">
     <form method="post" action="{{ url_for('run_now') }}" style="display:inline;">
-      <button type="submit" class="btn btn-primary btn-lg">Run Now</button>
+      <button type="submit" class="btn btn-primary">Run Now</button>
     </form>
     <a href="{{ url_for('new_search') }}" class="btn btn-secondary">+ New Search</a>
   </div>
