@@ -18,27 +18,24 @@ logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
 
 
-def run_all_searches() -> int:
-    """Run all configured searches, build digest, send email."""
-    logger.info("Scheduler: starting search run")
-
-    searches = models.get_all_searches()
+def run_searches_for_user(user_id: int) -> int:
+    """Run all searches for a specific user."""
+    searches = models.get_all_searches(user_id)
     if not searches:
-        logger.info("No searches configured, skipping")
         return 0
 
-    settings = models.get_all_settings()
+    settings = models.get_all_settings(user_id)
     mailto = settings.get("email_sender", "")
     lookback = int(settings.get("lookback_days", "30"))
 
     # Determine date range
-    seen_count = models.get_seen_count()
+    seen_count = models.get_seen_count(user_id)
     if seen_count > 0:
         since_date = date.today() - timedelta(days=7)
     else:
         since_date = date.today() - timedelta(days=lookback)
 
-    dedup = Deduplicator(models.DB_PATH)
+    dedup = Deduplicator(user_id)
     all_topics: list[TopicResults] = []
     all_new_papers: list[Paper] = []
 
@@ -59,14 +56,12 @@ def run_all_searches() -> int:
         all_topics.append(TopicResults(name=search["name"], papers=new_papers))
         all_new_papers.extend(new_papers)
 
-    # Build digest
     html = build_digest(all_topics)
     total = len(all_new_papers)
 
-    # Save digest to DB
+    # Try to send email
     sent = False
     if total > 0:
-        # Try to send email
         sender = settings.get("email_sender", "")
         password = settings.get("email_password", "")
         recipients_str = settings.get("email_recipients", "")
@@ -86,40 +81,40 @@ def run_all_searches() -> int:
                 send_digest(email_config, subject, html)
                 sent = True
             except Exception as e:
-                logger.error(f"Email send failed: {e}")
+                logger.error(f"Email send failed for user {user_id}: {e}")
 
-    models.save_digest(total, html, sent)
+    models.save_digest(user_id, total, html, sent)
     dedup.mark_seen(all_new_papers)
-    dedup.close()
 
-    logger.info(f"Scheduler: done — {total} new papers, email sent: {sent}")
+    logger.info(f"User {user_id}: {total} new papers, email sent: {sent}")
     return total
 
 
-def start_scheduler():
-    """Start the background scheduler based on saved settings."""
-    settings = models.get_all_settings()
-    frequency = settings.get("schedule_frequency", "weekly")
-    day = settings.get("schedule_day", "monday")
-    hour = int(settings.get("schedule_hour", "9"))
+def run_all_users():
+    """Run searches for all users (called by scheduler)."""
+    logger.info("Scheduler: running searches for all users")
+    with models.get_db() as conn:
+        users = models._fetchall(conn, "SELECT id FROM users")
 
-    # Remove existing job if any
+    for user in users:
+        try:
+            run_searches_for_user(user["id"])
+        except Exception as e:
+            logger.error(f"Scheduler error for user {user['id']}: {e}")
+
+
+def start_scheduler():
+    """Start the background scheduler."""
     if scheduler.get_job("lit_monitor_job"):
         scheduler.remove_job("lit_monitor_job")
 
-    if frequency == "daily":
-        scheduler.add_job(run_all_searches, "cron", hour=hour, id="lit_monitor_job")
-    elif frequency == "weekly":
-        scheduler.add_job(run_all_searches, "cron", day_of_week=day[:3].lower(), hour=hour, id="lit_monitor_job")
-    elif frequency == "biweekly":
-        scheduler.add_job(run_all_searches, "interval", weeks=2, id="lit_monitor_job")
-    elif frequency == "monthly":
-        scheduler.add_job(run_all_searches, "cron", day=1, hour=hour, id="lit_monitor_job")
+    # Run weekly on Mondays at 9am (default)
+    scheduler.add_job(run_all_users, "cron", day_of_week="mon", hour=9, id="lit_monitor_job")
 
     if not scheduler.running:
         scheduler.start()
 
-    logger.info(f"Scheduler started: {frequency} (day={day}, hour={hour})")
+    logger.info("Scheduler started: weekly on Mondays at 9am")
 
 
 def get_next_run():

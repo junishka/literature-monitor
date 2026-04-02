@@ -11,10 +11,13 @@
   <nav>
     <div class="container">
       <a href="{{ url_for('index') }}" class="logo">Lit Monitor</a>
+      {% if g.user %}
       <a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' }}">Dashboard</a>
       <a href="{{ url_for('journals') }}" class="{{ 'active' if request.endpoint in ('journals', 'journal_search') }}">Journals</a>
       <a href="{{ url_for('digests') }}" class="{{ 'active' if request.endpoint == 'digests' }}">Digests</a>
       <a href="{{ url_for('settings') }}" class="{{ 'active' if request.endpoint == 'settings' }}">Settings</a>
+      <a href="{{ url_for('logout') }}" style="margin-left:auto;">{{ g.user.name or g.user.email }} &middot; Logout</a>
+      {% endif %}
     </div>
   </nav>
 
