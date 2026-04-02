@@ -158,6 +158,16 @@ def init_db():
             )
         """)
 
+        cur.execute(f"""
+            CREATE TABLE IF NOT EXISTS journal_sets (
+                id {serial},
+                user_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                journals TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
 
 # --- Users ---
 
@@ -283,6 +293,42 @@ def get_all_settings(user_id: int) -> dict:
     with get_db() as conn:
         rows = _fetchall(conn, f"SELECT key, value FROM settings WHERE user_id = {_ph()}", (user_id,))
         return {r["key"]: r["value"] for r in rows}
+
+
+# --- Journal Sets (per user) ---
+
+def save_journal_set(user_id: int, name: str, journals: list[dict]) -> int:
+    """Save a reusable set of journals. journals = [{"id": "S...", "name": "..."}]"""
+    with get_db() as conn:
+        if USE_POSTGRES:
+            cur = _execute(conn, "INSERT INTO journal_sets (user_id, name, journals) VALUES (%s, %s, %s) RETURNING id",
+                           (user_id, name, json.dumps(journals)))
+            return cur.fetchone()[0]
+        else:
+            cur = _execute(conn, "INSERT INTO journal_sets (user_id, name, journals) VALUES (?, ?, ?)",
+                           (user_id, name, json.dumps(journals)))
+            return cur.lastrowid
+
+
+def get_journal_sets(user_id: int) -> list[dict]:
+    with get_db() as conn:
+        rows = _fetchall(conn, f"SELECT * FROM journal_sets WHERE user_id = {_ph()} ORDER BY name", (user_id,))
+        for r in rows:
+            r["journals"] = json.loads(r["journals"])
+        return rows
+
+
+def get_journal_set(set_id: int, user_id: int) -> dict | None:
+    with get_db() as conn:
+        row = _fetchone(conn, f"SELECT * FROM journal_sets WHERE id = {_ph()} AND user_id = {_ph()}", (set_id, user_id))
+        if row:
+            row["journals"] = json.loads(row["journals"])
+        return row
+
+
+def delete_journal_set(set_id: int, user_id: int):
+    with get_db() as conn:
+        _execute(conn, f"DELETE FROM journal_sets WHERE id = {_ph()} AND user_id = {_ph()}", (set_id, user_id))
 
 
 # --- Seen Papers (per user) ---

@@ -163,7 +163,8 @@ def new_search():
         flash(f"Search '{name}' created!", "success")
         return redirect(url_for("index"))
 
-    return render_template("search_form.html", search=None, journals=[])
+    journal_sets = models.get_journal_sets(user_id)
+    return render_template("search_form.html", search=None, journals=[], journal_sets=journal_sets)
 
 
 @app.route("/searches/<int:search_id>/edit", methods=["GET", "POST"])
@@ -195,7 +196,8 @@ def edit_search(search_id):
         return redirect(url_for("index"))
 
     journals = models.get_search_journals(search_id)
-    return render_template("search_form.html", search=search, journals=journals)
+    journal_sets = models.get_journal_sets(user_id)
+    return render_template("search_form.html", search=search, journals=journals, journal_sets=journal_sets)
 
 
 @app.route("/searches/<int:search_id>/delete", methods=["POST"])
@@ -212,6 +214,35 @@ def delete_search(search_id):
 @login_required
 def journals():
     return render_template("journals.html", results=None, query="")
+
+
+@app.route("/api/journal-sets", methods=["POST"])
+@login_required
+def api_save_journal_set():
+    """Save current journals as a reusable set."""
+    data = request.get_json()
+    name = data.get("name", "").strip()
+    journals = data.get("journals", [])
+
+    if not name or not journals:
+        return jsonify({"error": "Name and journals required"}), 400
+
+    set_id = models.save_journal_set(session["user_id"], name, journals)
+    return jsonify({"id": set_id, "name": name})
+
+
+@app.route("/api/journal-sets/<int:set_id>", methods=["DELETE"])
+@login_required
+def api_delete_journal_set(set_id):
+    models.delete_journal_set(set_id, session["user_id"])
+    return jsonify({"ok": True})
+
+
+@app.route("/api/journal-sets")
+@login_required
+def api_get_journal_sets():
+    sets = models.get_journal_sets(session["user_id"])
+    return jsonify(sets)
 
 
 @app.route("/journals/search")

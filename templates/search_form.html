@@ -21,6 +21,15 @@
     <label>Journals</label>
     <div class="form-hint" style="margin-bottom:8px;">Search for journals to add, or leave empty to search all journals. Try full names or acronyms like AMJ, ASQ, SMJ, ASR, AJS.</div>
 
+    {% if journal_sets %}
+    <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+      <span style="font-size:13px; color:var(--text-muted); padding:5px 0;">Load saved set:</span>
+      {% for js in journal_sets %}
+      <button type="button" onclick="loadJournalSet({{ js.journals | tojson | e }})" class="btn btn-secondary btn-sm">{{ js.name }}</button>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     <div style="display:flex; gap:8px; margin-bottom:12px;">
       <input type="text" id="journal-search" placeholder="e.g., Academy of Management Journal, ASQ, SMJ, sociology..." style="flex:1;">
       <button type="button" onclick="searchJournals()" class="btn btn-secondary">Search</button>
@@ -44,6 +53,10 @@
     </div>
     <div id="no-journals" style="color:var(--text-muted); font-size:13px; {% if journals %}display:none;{% endif %}">
       No journals selected — will search across all journals.
+    </div>
+
+    <div style="margin-top:10px;">
+      <button type="button" onclick="saveCurrentAsSet()" class="btn btn-secondary btn-sm" id="save-set-btn" style="{% if not journals %}display:none;{% endif %}">Save current journals as a set</button>
     </div>
   </div>
 
@@ -104,6 +117,7 @@ function addJournal(id, name) {
   `;
   container.insertAdjacentHTML('beforeend', html);
   document.getElementById('no-journals').style.display = 'none';
+  updateSaveBtn();
 }
 
 function removeJournal(btn) {
@@ -112,6 +126,47 @@ function removeJournal(btn) {
   if (remaining.length === 0) {
     document.getElementById('no-journals').style.display = 'block';
   }
+  updateSaveBtn();
+}
+
+function loadJournalSet(journals) {
+  // Clear current journals
+  document.getElementById('selected-journals').innerHTML = '';
+  // Add each journal from the set
+  journals.forEach(j => addJournal(j.id, j.name));
+}
+
+function saveCurrentAsSet() {
+  const items = document.querySelectorAll('#selected-journals .journal-item');
+  if (items.length === 0) { alert('No journals selected to save.'); return; }
+
+  const name = prompt('Name this journal set (e.g., "Top Management Journals"):');
+  if (!name) return;
+
+  const journals = [];
+  items.forEach(item => {
+    journals.push({
+      id: item.querySelector('input[name="journal_ids"]').value,
+      name: item.querySelector('.journal-name').textContent,
+    });
+  });
+
+  fetch('/api/journal-sets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, journals }),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) { alert(data.error); return; }
+    alert('Journal set "' + name + '" saved! It will appear when you create or edit searches.');
+  });
+}
+
+function updateSaveBtn() {
+  const btn = document.getElementById('save-set-btn');
+  const items = document.querySelectorAll('#selected-journals .journal-item');
+  btn.style.display = items.length > 0 ? 'inline-flex' : 'none';
 }
 
 // Search on Enter key
