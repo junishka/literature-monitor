@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Digest {{ digest.run_date[:10] }} — Literature Monitor{% endblock %}
+{% block title %}Digest {{ digest.run_date|string|truncate(10, True, '') }} — Literature Monitor{% endblock %}
 
 {% block content %}
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-  <h1>Digest — {{ digest.run_date[:10] }}</h1>
+  <h1>Digest — {{ digest.run_date|string|truncate(10, True, '') }}</h1>
   <div class="actions">
     <span class="badge {{ 'badge-success' if digest.sent_email else 'badge-muted' }}">
       {{ 'Email sent' if digest.sent_email else 'Not emailed' }}

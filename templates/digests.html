@@ -18,7 +18,7 @@
     <tbody>
       {% for d in digests %}
       <tr>
-        <td>{{ d.run_date[:16] }}</td>
+        <td>{{ d.run_date|string|truncate(16, True, '') }}</td>
         <td><span class="badge badge-primary">{{ d.total_papers }} paper{{ 's' if d.total_papers != 1 }}</span></td>
         <td>
           {% if d.sent_email %}<span class="badge badge-success">Sent</span>

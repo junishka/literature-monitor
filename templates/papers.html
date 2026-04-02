@@ -32,7 +32,7 @@
           —
           {% endif %}
         </td>
-        <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">{{ p.first_seen[:10] }}</td>
+        <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">{{ p.first_seen|string|truncate(10, True, '') }}</td>
       </tr>
       {% endfor %}
     </tbody>
