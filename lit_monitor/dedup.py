@@ -38,15 +38,14 @@ class Deduplicator:
     def mark_seen(self, papers: list[Paper]):
         """Record papers as seen for this user."""
         now = datetime.now().isoformat()
-        ph = models._ph
         with models.get_db() as conn:
             for paper in papers:
                 pid = self._paper_id(paper)
                 try:
                     models._execute(
                         conn,
-                        f"INSERT INTO seen_papers (paper_id, user_id, title, doi, first_seen) VALUES ({models._ph(5)})",
-                        (pid, self.user_id, paper.title, paper.doi, now),
+                        f"INSERT INTO seen_papers (paper_id, user_id, title, doi, pub_date, first_seen) VALUES ({models._ph(6)})",
+                        (pid, self.user_id, paper.title, paper.doi, paper.date, now),
                     )
                 except Exception:
                     pass  # Already exists, skip

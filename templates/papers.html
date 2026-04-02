@@ -10,9 +10,26 @@
   <table>
     <thead>
       <tr>
-        <th style="width:55%;">Title</th>
+        <th style="width:50%;">Title</th>
         <th>DOI</th>
-        <th>Found</th>
+        <th>
+          <a href="{{ url_for('paper_history', sort='pub_date', order='asc' if sort == 'pub_date' and order == 'desc' else 'desc') }}"
+             style="color:var(--text-muted); text-decoration:none;">
+            Published
+            {% if sort == 'pub_date' %}
+              {{ '&#9650;' if order == 'asc' else '&#9660;' }}
+            {% endif %}
+          </a>
+        </th>
+        <th>
+          <a href="{{ url_for('paper_history', sort='first_seen', order='asc' if sort == 'first_seen' and order == 'desc' else 'desc') }}"
+             style="color:var(--text-muted); text-decoration:none;">
+            Found
+            {% if sort == 'first_seen' %}
+              {{ '&#9650;' if order == 'asc' else '&#9660;' }}
+            {% endif %}
+          </a>
+        </th>
       </tr>
     </thead>
     <tbody>
@@ -28,10 +45,9 @@
         <td style="font-size:12px; color:var(--text-muted);">
           {% if p.doi %}
           <a href="https://doi.org/{{ p.doi }}" target="_blank" style="color:var(--text-muted);">{{ p.doi }}</a>
-          {% else %}
-          —
-          {% endif %}
+          {% else %}—{% endif %}
         </td>
+        <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">{{ (p.pub_date or '')|string|truncate(10, True, '') or '—' }}</td>
         <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">{{ p.first_seen|string|truncate(10, True, '') }}</td>
       </tr>
       {% endfor %}

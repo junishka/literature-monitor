@@ -144,10 +144,17 @@ def init_db():
                 user_id INTEGER NOT NULL,
                 title TEXT,
                 doi TEXT,
+                pub_date TEXT DEFAULT '',
                 first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (paper_id, user_id)
             )
         """)
+
+        # Migration: add pub_date column if missing
+        try:
+            cur.execute("ALTER TABLE seen_papers ADD COLUMN pub_date TEXT DEFAULT ''")
+        except Exception:
+            pass  # Column already exists
 
         cur.execute("""
             CREATE TABLE IF NOT EXISTS settings (
@@ -339,10 +346,13 @@ def get_seen_count(user_id: int) -> int:
         return row["cnt"] if row else 0
 
 
-def get_seen_papers(user_id: int, limit: int = 200) -> list[dict]:
+def get_seen_papers(user_id: int, limit: int = 500, sort: str = "first_seen", order: str = "desc") -> list[dict]:
+    allowed_sorts = {"first_seen": "first_seen", "pub_date": "pub_date"}
+    sort_col = allowed_sorts.get(sort, "first_seen")
+    order_dir = "ASC" if order == "asc" else "DESC"
     with get_db() as conn:
         return _fetchall(conn,
-            f"SELECT paper_id, title, doi, first_seen FROM seen_papers WHERE user_id = {_ph()} ORDER BY first_seen DESC LIMIT {_ph()}",
+            f"SELECT paper_id, title, doi, pub_date, first_seen FROM seen_papers WHERE user_id = {_ph()} ORDER BY {sort_col} {order_dir} LIMIT {_ph()}",
             (user_id, limit))
 
 

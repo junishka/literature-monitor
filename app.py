@@ -222,8 +222,10 @@ def delete_search(search_id):
 @login_required
 def paper_history():
     user_id = session["user_id"]
-    papers = models.get_seen_papers(user_id, limit=200)
-    return render_template("papers.html", papers=papers)
+    sort = request.args.get("sort", "first_seen")
+    order = request.args.get("order", "desc")
+    papers = models.get_seen_papers(user_id, limit=500, sort=sort, order=order)
+    return render_template("papers.html", papers=papers, sort=sort, order=order)
 
 
 # --- Journals ---
