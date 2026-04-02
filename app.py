@@ -416,21 +416,6 @@ def run_now():
     return redirect(url_for("index"))
 
 
-# --- Debug ---
-
-@app.route("/debug/run")
-@login_required
-def debug_run():
-    """Debug endpoint — runs search and shows raw output instead of redirecting."""
-    import traceback
-    try:
-        total = run_searches_for_user(session["user_id"])
-        return f"<h1>Success</h1><p>Found {total} new papers.</p><a href='/'>Back</a>"
-    except Exception as e:
-        tb = traceback.format_exc()
-        return f"<h1>Error</h1><pre>{tb}</pre><a href='/'>Back</a>", 500
-
-
 # --- Template filter ---
 
 @app.template_filter("nl2br")
