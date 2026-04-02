@@ -383,6 +383,7 @@ def view_digest(digest_id):
 @app.route("/run", methods=["POST"])
 @login_required
 def run_now():
+    import traceback
     try:
         total = run_searches_for_user(session["user_id"])
         if total > 0:
@@ -390,8 +391,25 @@ def run_now():
         else:
             flash("No new papers found.", "info")
     except Exception as e:
+        tb = traceback.format_exc()
+        logging.error(f"Run failed: {tb}")
         flash(f"Search failed: {e}", "error")
     return redirect(url_for("index"))
+
+
+# --- Debug ---
+
+@app.route("/debug/run")
+@login_required
+def debug_run():
+    """Debug endpoint — runs search and shows raw output instead of redirecting."""
+    import traceback
+    try:
+        total = run_searches_for_user(session["user_id"])
+        return f"<h1>Success</h1><p>Found {total} new papers.</p><a href='/'>Back</a>"
+    except Exception as e:
+        tb = traceback.format_exc()
+        return f"<h1>Error</h1><pre>{tb}</pre><a href='/'>Back</a>", 500
 
 
 # --- Template filter ---
