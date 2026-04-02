@@ -18,6 +18,10 @@ logger = logging.getLogger(__name__)
 
 scheduler = BackgroundScheduler()
 
+# Read Gmail credentials at import time (threads may not see env vars reliably)
+GMAIL_SENDER = os.environ.get("GMAIL_SENDER", "")
+GMAIL_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
+
 
 def run_searches_for_user(user_id: int) -> int:
     """Run all searches for a specific user."""
@@ -63,11 +67,12 @@ def run_searches_for_user(user_id: int) -> int:
     # Try to send email using central Gmail account
     sent = False
     if total > 0:
-        sender = os.environ.get("GMAIL_SENDER", "")
-        password = os.environ.get("GMAIL_APP_PASSWORD", "")
+        sender = GMAIL_SENDER
+        password = GMAIL_PASSWORD
         recipients_str = settings.get("email_recipients", "")
         recipients = [r.strip() for r in recipients_str.split(",") if r.strip()]
 
+        logger.info(f"Email config: sender={'yes' if sender else 'NO'}, password={'yes' if password else 'NO'}, recipients={recipients}")
         if sender and password and recipients:
             email_config = EmailConfig(
                 smtp_host="smtp.gmail.com",

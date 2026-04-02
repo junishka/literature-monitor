@@ -37,9 +37,39 @@
 
 {% block scripts %}
 <script>
-// Loading video
-document.getElementById('cat-video').src =
-  'https://www.youtube.com/embed/sOV3UCQouyw?autoplay=1&mute=1&loop=1&playlist=sOV3UCQouyw';
+// Playlist of videos — plays next one when current ends
+const videos = [
+  'sOV3UCQouyw',   // Your pick
+  'Of2HU3LGdbo',   // Cat in shark costume on Roomba
+  'J---aiyznGQ',   // Keyboard cat
+];
+let currentVideo = 0;
+
+function playVideo(index) {
+  const iframe = document.getElementById('cat-video');
+  iframe.src = `https://www.youtube.com/embed/${videos[index]}?autoplay=1&mute=1&enablejsapi=1`;
+}
+
+// Start first video
+playVideo(0);
+
+// Listen for video end and play next
+window.addEventListener('message', function(e) {
+  try {
+    const data = JSON.parse(e.data);
+    // YouTube sends state=0 when video ends
+    if (data.event === 'onStateChange' && data.info === 0) {
+      currentVideo = (currentVideo + 1) % videos.length;
+      playVideo(currentVideo);
+    }
+  } catch(err) {}
+});
+
+// Fallback: switch video every 70 seconds in case YouTube API events don't fire
+setInterval(() => {
+  currentVideo = (currentVideo + 1) % videos.length;
+  playVideo(currentVideo);
+}, 70000);
 
 // Status messages to cycle through
 const messages = [
