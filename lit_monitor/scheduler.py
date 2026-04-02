@@ -1,6 +1,7 @@
 """Background scheduler for periodic literature searches."""
 
 import logging
+import os
 from datetime import date, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -59,18 +60,18 @@ def run_searches_for_user(user_id: int) -> int:
     html = build_digest(all_topics)
     total = len(all_new_papers)
 
-    # Try to send email
+    # Try to send email using central Gmail account
     sent = False
     if total > 0:
-        sender = settings.get("email_sender", "")
-        password = settings.get("email_password", "")
+        sender = os.environ.get("GMAIL_SENDER", "")
+        password = os.environ.get("GMAIL_APP_PASSWORD", "")
         recipients_str = settings.get("email_recipients", "")
         recipients = [r.strip() for r in recipients_str.split(",") if r.strip()]
 
         if sender and password and recipients:
             email_config = EmailConfig(
-                smtp_host=settings.get("smtp_host", "smtp.gmail.com"),
-                smtp_port=int(settings.get("smtp_port", "587")),
+                smtp_host="smtp.gmail.com",
+                smtp_port=587,
                 use_tls=True,
                 sender=sender,
                 password=password,

@@ -284,27 +284,18 @@ def settings():
     user_id = session["user_id"]
     if request.method == "POST":
         fields = [
-            "email_sender", "email_password", "email_recipients",
-            "smtp_host", "smtp_port",
+            "email_recipients",
             "schedule_frequency", "schedule_day", "schedule_hour",
             "lookback_days",
         ]
         for field in fields:
             value = request.form.get(field, "")
-            if value:
-                models.set_setting(user_id, field, value)
-            elif field != "email_password":
-                models.set_setting(user_id, field, value)
+            models.set_setting(user_id, field, value)
 
         flash("Settings saved!", "success")
         return redirect(url_for("settings"))
 
     current = models.get_all_settings(user_id)
-    if current.get("email_password"):
-        current["email_password_masked"] = "••••••••"
-    else:
-        current["email_password_masked"] = ""
-
     return render_template("settings.html", settings=current)
 
 
@@ -316,17 +307,21 @@ def test_email():
 
     user_id = session["user_id"]
     s = models.get_all_settings(user_id)
-    sender = s.get("email_sender", "")
-    password = s.get("email_password", "")
+    sender = os.environ.get("GMAIL_SENDER", "")
+    password = os.environ.get("GMAIL_APP_PASSWORD", "")
     recipients = [r.strip() for r in s.get("email_recipients", "").split(",") if r.strip()]
 
-    if not sender or not password or not recipients:
-        flash("Please configure email settings first.", "error")
+    if not recipients:
+        flash("Please set your email address in settings first.", "error")
+        return redirect(url_for("settings"))
+
+    if not sender or not password:
+        flash("Email service not configured. Contact jbyun@iese.edu.", "error")
         return redirect(url_for("settings"))
 
     email_config = EmailConfig(
-        smtp_host=s.get("smtp_host", "smtp.gmail.com"),
-        smtp_port=int(s.get("smtp_port", "587")),
+        smtp_host="smtp.gmail.com",
+        smtp_port=587,
         use_tls=True,
         sender=sender,
         password=password,

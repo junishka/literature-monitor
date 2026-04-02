@@ -6,32 +6,10 @@
 
 <form method="post" class="card">
   <h2>Email</h2>
-  <div class="form-row">
-    <div class="form-group">
-      <label for="email_sender">Sender Email (Gmail)</label>
-      <input type="email" id="email_sender" name="email_sender" value="{{ settings.get('email_sender', '') }}" placeholder="you@gmail.com">
-    </div>
-    <div class="form-group">
-      <label for="email_password">Gmail App Password</label>
-      <input type="password" id="email_password" name="email_password" placeholder="{{ settings.get('email_password_masked', 'Enter app password') }}">
-      <div class="form-hint">Get one at <a href="https://myaccount.google.com/apppasswords" target="_blank">myaccount.google.com/apppasswords</a></div>
-    </div>
-  </div>
   <div class="form-group">
     <label for="email_recipients">Send Digest To</label>
-    <input type="text" id="email_recipients" name="email_recipients" value="{{ settings.get('email_recipients', '') }}" placeholder="email1@example.com, email2@example.com">
-    <div class="form-hint">Comma-separated email addresses.</div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group">
-      <label for="smtp_host">SMTP Host</label>
-      <input type="text" id="smtp_host" name="smtp_host" value="{{ settings.get('smtp_host', 'smtp.gmail.com') }}">
-    </div>
-    <div class="form-group">
-      <label for="smtp_port">SMTP Port</label>
-      <input type="number" id="smtp_port" name="smtp_port" value="{{ settings.get('smtp_port', '587') }}">
-    </div>
+    <input type="text" id="email_recipients" name="email_recipients" value="{{ settings.get('email_recipients', '') }}" placeholder="you@university.edu">
+    <div class="form-hint">Your email address. Digests will be sent from Literature Monitor.</div>
   </div>
 
   <h2 style="margin-top:24px;">Schedule</h2>
