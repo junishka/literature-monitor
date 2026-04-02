@@ -120,16 +120,18 @@ def start_scheduler(frequency="weekly", day="monday", hour=9):
     hour = int(hour)
 
     if frequency == "daily":
-        scheduler.add_job(run_all_users, "cron", hour=hour, id="lit_monitor_job")
+        scheduler.add_job(run_all_users, "cron", hour=hour, minute=0, id="lit_monitor_job")
         desc = f"daily at {hour}:00"
     elif frequency == "biweekly":
-        scheduler.add_job(run_all_users, "interval", weeks=2, id="lit_monitor_job")
-        desc = "every 2 weeks"
+        # Run on the chosen day every week, but only on odd/even weeks
+        scheduler.add_job(run_all_users, "cron", day_of_week=day_short, hour=hour, minute=0,
+                          week="1-53/2", id="lit_monitor_job")
+        desc = f"every 2 weeks on {day}s at {hour}:00"
     elif frequency == "monthly":
-        scheduler.add_job(run_all_users, "cron", day=1, hour=hour, id="lit_monitor_job")
+        scheduler.add_job(run_all_users, "cron", day=1, hour=hour, minute=0, id="lit_monitor_job")
         desc = f"monthly on the 1st at {hour}:00"
     else:  # weekly
-        scheduler.add_job(run_all_users, "cron", day_of_week=day_short, hour=hour, id="lit_monitor_job")
+        scheduler.add_job(run_all_users, "cron", day_of_week=day_short, hour=hour, minute=0, id="lit_monitor_job")
         desc = f"weekly on {day}s at {hour}:00"
 
     if not scheduler.running:

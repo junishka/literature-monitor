@@ -37,7 +37,7 @@
 
 {% block scripts %}
 <script>
-// Playlist of videos — plays next one when current ends
+// Playlist of videos — switches every 50 seconds
 const videos = [
   'sOV3UCQouyw',   // Your pick
   'Of2HU3LGdbo',   // Cat in shark costume on Roomba
@@ -47,29 +47,17 @@ let currentVideo = 0;
 
 function playVideo(index) {
   const iframe = document.getElementById('cat-video');
-  iframe.src = `https://www.youtube.com/embed/${videos[index]}?autoplay=1&mute=1&enablejsapi=1`;
+  iframe.src = `https://www.youtube.com/embed/${videos[index]}?autoplay=1&mute=1`;
 }
 
 // Start first video
 playVideo(0);
 
-// Listen for video end and play next
-window.addEventListener('message', function(e) {
-  try {
-    const data = JSON.parse(e.data);
-    // YouTube sends state=0 when video ends
-    if (data.event === 'onStateChange' && data.info === 0) {
-      currentVideo = (currentVideo + 1) % videos.length;
-      playVideo(currentVideo);
-    }
-  } catch(err) {}
-});
-
-// Fallback: switch video every 70 seconds in case YouTube API events don't fire
+// Switch to next video every 50 seconds
 setInterval(() => {
   currentVideo = (currentVideo + 1) % videos.length;
   playVideo(currentVideo);
-}, 70000);
+}, 50000);
 
 // Status messages to cycle through
 const messages = [
