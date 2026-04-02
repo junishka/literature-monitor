@@ -84,8 +84,10 @@ def run_searches_for_user(user_id: int) -> int:
             except Exception as e:
                 logger.error(f"Email send failed for user {user_id}: {e}")
 
-    models.save_digest(user_id, total, html, sent)
-    dedup.mark_seen(all_new_papers)
+    # Only save digest if papers were found
+    if total > 0:
+        models.save_digest(user_id, total, html, sent)
+        dedup.mark_seen(all_new_papers)
 
     logger.info(f"User {user_id}: {total} new papers, email sent: {sent}")
     return total

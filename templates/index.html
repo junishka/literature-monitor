@@ -22,7 +22,7 @@
     <div class="stat-label">Papers Tracked</div>
   </div>
   <div class="stat-card">
-    <div class="stat-value">{{ digests|length }}</div>
+    <div class="stat-value">{{ digests|selectattr('sent_email')|list|length }}</div>
     <div class="stat-label">Digests Sent</div>
   </div>
   <div class="stat-card">
