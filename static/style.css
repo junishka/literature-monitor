@@ -1,24 +1,24 @@
 /* Literature Monitor — Clean Academic UI */
 
 :root {
-  --primary: #1a365d;
-  --primary-light: #2c5282;
-  --accent: #3182ce;
-  --bg: #f7fafc;
-  --card-bg: #ffffff;
-  --text: #2d3748;
-  --text-muted: #718096;
-  --border: #e2e8f0;
-  --success: #38a169;
-  --error: #e53e3e;
-  --info: #3182ce;
-  --radius: 8px;
+  --primary: #b5654a;
+  --primary-light: #c4826b;
+  --accent: #d4956b;
+  --bg: #faf3eb;
+  --card-bg: #fdf8f3;
+  --text: #4a3728;
+  --text-muted: #8b7d6b;
+  --border: #e8d5c4;
+  --success: #7ea87e;
+  --error: #c97b7b;
+  --info: #7ba7b5;
+  --radius: 10px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Georgia', 'Palatino Linotype', 'Book Antiqua', serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
@@ -33,7 +33,7 @@ nav {
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(181,101,74,0.15);
 }
 nav .container {
   display: flex;
@@ -91,9 +91,9 @@ h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
   font-size: 14px;
   font-weight: 500;
 }
-.flash.success { background: #f0fff4; color: var(--success); border: 1px solid #c6f6d5; }
-.flash.error { background: #fff5f5; color: var(--error); border: 1px solid #fed7d7; }
-.flash.info { background: #ebf8ff; color: var(--info); border: 1px solid #bee3f8; }
+.flash.success { background: #f2f7f0; color: var(--success); border: 1px solid #c8dcc4; }
+.flash.error { background: #faf0f0; color: var(--error); border: 1px solid #e8c8c8; }
+.flash.info { background: #eef5f7; color: var(--info); border: 1px solid #c4d8e0; }
 
 /* Buttons */
 .btn {
@@ -111,12 +111,12 @@ h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
 }
 .btn-primary { background: var(--accent); color: white; }
 .btn-primary:hover { background: var(--primary-light); }
-.btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); }
+.btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
 .btn-secondary:hover { background: var(--bg); }
-.btn-danger { background: white; color: var(--error); border: 1px solid #fed7d7; }
-.btn-danger:hover { background: #fff5f5; }
+.btn-danger { background: var(--card-bg); color: var(--error); border: 1px solid #e8c8c8; }
+.btn-danger:hover { background: #faf0f0; }
 .btn-success { background: var(--success); color: white; }
-.btn-success:hover { background: #2f855a; }
+.btn-success:hover { background: #6b956b; }
 .btn-sm { padding: 5px 10px; font-size: 13px; }
 .btn-lg { padding: 12px 24px; font-size: 16px; }
 
@@ -141,7 +141,7 @@ textarea, select {
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(49,130,206,0.1);
+  box-shadow: 0 0 0 3px rgba(212,149,107,0.15);
 }
 textarea { resize: vertical; min-height: 100px; }
 .form-group { margin-bottom: 16px; }
@@ -162,19 +162,31 @@ tr:hover { background: var(--bg); }
   font-size: 12px;
   font-weight: 600;
 }
-.badge-primary { background: #ebf8ff; color: var(--accent); }
-.badge-success { background: #f0fff4; color: var(--success); }
-.badge-muted { background: #edf2f7; color: var(--text-muted); }
+.badge-primary { background: #f5e6d8; color: var(--primary); }
+.badge-success { background: #e8f0e4; color: var(--success); }
+.badge-muted { background: #ede6dd; color: var(--text-muted); }
 
 /* Keyword tags */
 .keyword-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .keyword-tag {
-  background: #edf2f7;
+  background: #ede6dd;
   color: var(--text);
   padding: 3px 10px;
   border-radius: 4px;
   font-size: 13px;
 }
+
+/* Footer */
+.footer {
+  margin-top: 50px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.footer a { color: var(--primary); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
 
 /* Journal list */
 .journal-item {
