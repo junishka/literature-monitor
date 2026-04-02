@@ -3,31 +3,24 @@
 
 {% block content %}
 <h1>Paper History</h1>
-<p style="color:var(--text-muted); margin-bottom:20px;">All papers found across your searches. {{ papers|length }} papers tracked.</p>
+<p style="color:var(--text-muted); margin-bottom:20px;">{{ papers|length }} papers tracked.</p>
 
 {% if papers %}
-<div class="card" style="padding:0;">
-  <table>
+<div class="card" style="padding:0; overflow-x:auto;">
+  <table style="min-width:700px;">
     <thead>
       <tr>
-        <th style="width:50%;">Title</th>
-        <th>DOI</th>
-        <th>
+        <th style="width:45%;">Title</th>
+        <th style="width:20%;">
           <a href="{{ url_for('paper_history', sort='pub_date', order='asc' if sort == 'pub_date' and order == 'desc' else 'desc') }}"
-             style="color:var(--text-muted); text-decoration:none;">
-            Published
-            {% if sort == 'pub_date' %}
-              {{ '&#9650;' if order == 'asc' else '&#9660;' }}
-            {% endif %}
+             style="color:var(--text-muted); text-decoration:none; white-space:nowrap;">
+            Published {% if sort == 'pub_date' %}{% if order == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
           </a>
         </th>
-        <th>
+        <th style="width:15%;">
           <a href="{{ url_for('paper_history', sort='first_seen', order='asc' if sort == 'first_seen' and order == 'desc' else 'desc') }}"
-             style="color:var(--text-muted); text-decoration:none;">
-            Found
-            {% if sort == 'first_seen' %}
-              {{ '&#9650;' if order == 'asc' else '&#9660;' }}
-            {% endif %}
+             style="color:var(--text-muted); text-decoration:none; white-space:nowrap;">
+            Found {% if sort == 'first_seen' %}{% if order == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
           </a>
         </th>
       </tr>
@@ -42,13 +35,8 @@
           <span style="font-weight:500;">{{ p.title }}</span>
           {% endif %}
         </td>
-        <td style="font-size:12px; color:var(--text-muted);">
-          {% if p.doi %}
-          <a href="https://doi.org/{{ p.doi }}" target="_blank" style="color:var(--text-muted);">{{ p.doi }}</a>
-          {% else %}—{% endif %}
-        </td>
-        <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">{{ (p.pub_date or '')|string|truncate(10, True, '') or '—' }}</td>
-        <td style="font-size:12px; color:var(--text-muted); white-space:nowrap;">{{ p.first_seen|string|truncate(10, True, '') }}</td>
+        <td style="font-size:13px; color:var(--text-muted); white-space:nowrap;">{{ (p.pub_date or '')|string|truncate(10, True, '') if p.pub_date else '-' }}</td>
+        <td style="font-size:13px; color:var(--text-muted); white-space:nowrap;">{{ p.first_seen|string|truncate(10, True, '') }}</td>
       </tr>
       {% endfor %}
     </tbody>
