@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if search else 'New' }} Search — Literature Monitor{% endblock %}
+
+{% block content %}
+<h1>{{ 'Edit' if search else 'New' }} Search</h1>
+
+<form method="post" class="card">
+  <div class="form-group">
+    <label for="name">Topic Name</label>
+    <input type="text" id="name" name="name" value="{{ search.name if search else '' }}" placeholder="e.g., CEO Succession" required>
+  </div>
+
+  <div class="form-group">
+    <label for="keywords">Keywords</label>
+    <textarea id="keywords" name="keywords" placeholder="One keyword per line, e.g.:&#10;CEO succession&#10;chief executive turnover&#10;CEO replacement" required>{% if search %}{% for kw in search.keywords %}{{ kw }}
+{% endfor %}{% endif %}</textarea>
+    <div class="form-hint">One keyword per line. Searches in paper titles and abstracts.</div>
+  </div>
+
+  <div class="form-group">
+    <label>Journals</label>
+    <div class="form-hint" style="margin-bottom:8px;">Search for journals to add, or leave empty to search all journals.</div>
+
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <input type="text" id="journal-search" placeholder="Search journals (e.g., management, finance, sociology)..." style="flex:1;">
+      <button type="button" onclick="searchJournals()" class="btn btn-secondary">Search</button>
+    </div>
+
+    <div id="journal-results" style="display:none; margin-bottom:12px;">
+      <div class="card" style="max-height:300px; overflow-y:auto; padding:0;" id="journal-results-list"></div>
+    </div>
+
+    <div id="selected-journals">
+      {% for j in journals %}
+      <div class="journal-item" data-id="{{ j.id }}">
+        <div class="journal-info">
+          <div class="journal-name">{{ j.name }}</div>
+        </div>
+        <input type="hidden" name="journal_ids" value="{{ j.id }}">
+        <input type="hidden" name="journal_names" value="{{ j.name }}">
+        <button type="button" onclick="removeJournal(this)" class="btn btn-danger btn-sm">Remove</button>
+      </div>
+      {% endfor %}
+    </div>
+    <div id="no-journals" style="color:var(--text-muted); font-size:13px; {% if journals %}display:none;{% endif %}">
+      No journals selected — will search across all journals.
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="submit" class="btn btn-primary">{{ 'Update' if search else 'Create' }} Search</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function searchJournals() {
+  const q = document.getElementById('journal-search').value.trim();
+  if (!q) return;
+
+  fetch('/api/journals/search?q=' + encodeURIComponent(q))
+    .then(r => r.json())
+    .then(journals => {
+      const list = document.getElementById('journal-results-list');
+      const container = document.getElementById('journal-results');
+
+      if (journals.length === 0) {
+        list.innerHTML = '<div style="padding:16px; color:var(--text-muted);">No journals found.</div>';
+        container.style.display = 'block';
+        return;
+      }
+
+      list.innerHTML = journals.map(j => `
+        <div class="journal-item" style="padding:10px 16px;">
+          <div class="journal-info">
+            <div class="journal-name">${j.name}</div>
+            <div class="journal-meta">${j.publisher || ''} &middot; ${j.works_count.toLocaleString()} papers &middot; h-index: ${j.h_index}</div>
+          </div>
+          <button type="button" onclick="addJournal('${j.id}', '${j.name.replace(/'/g, "\\'")}')" class="btn btn-primary btn-sm">Add</button>
+        </div>
+      `).join('');
+      container.style.display = 'block';
+    });
+}
+
+function addJournal(id, name) {
+  // Check if already added
+  const existing = document.querySelector(`#selected-journals [data-id="${id}"]`);
+  if (existing) return;
+
+  const container = document.getElementById('selected-journals');
+  const html = `
+    <div class="journal-item" data-id="${id}">
+      <div class="journal-info">
+        <div class="journal-name">${name}</div>
+      </div>
+      <input type="hidden" name="journal_ids" value="${id}">
+      <input type="hidden" name="journal_names" value="${name}">
+      <button type="button" onclick="removeJournal(this)" class="btn btn-danger btn-sm">Remove</button>
+    </div>
+  `;
+  container.insertAdjacentHTML('beforeend', html);
+  document.getElementById('no-journals').style.display = 'none';
+}
+
+function removeJournal(btn) {
+  btn.closest('.journal-item').remove();
+  const remaining = document.querySelectorAll('#selected-journals .journal-item');
+  if (remaining.length === 0) {
+    document.getElementById('no-journals').style.display = 'block';
+  }
+}
+
+// Search on Enter key
+document.getElementById('journal-search').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); searchJournals(); }
+});
+</script>
+{% endblock %}

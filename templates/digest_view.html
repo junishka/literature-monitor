@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Digest {{ digest.run_date[:10] }} — Literature Monitor{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+  <h1>Digest — {{ digest.run_date[:10] }}</h1>
+  <div class="actions">
+    <span class="badge {{ 'badge-success' if digest.sent_email else 'badge-muted' }}">
+      {{ 'Email sent' if digest.sent_email else 'Not emailed' }}
+    </span>
+    <a href="{{ url_for('digests') }}" class="btn btn-secondary btn-sm">Back</a>
+  </div>
+</div>
+
+<div class="card" style="padding:0;">
+  <iframe srcdoc="{{ digest.html_content|e }}" style="width:100%; min-height:600px; border:none; border-radius:var(--radius);" onload="this.style.height = this.contentWindow.document.body.scrollHeight + 40 + 'px';"></iframe>
+</div>
+
+{% endblock %}

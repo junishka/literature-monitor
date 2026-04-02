@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Journal Discovery — Literature Monitor{% endblock %}
+
+{% block content %}
+<h1>Journal Discovery</h1>
+<p style="color:var(--text-muted); margin-bottom:20px;">Search for academic journals by name or research field. Add them to your search topics.</p>
+
+<div class="card">
+  <form action="{{ url_for('journal_search') }}" method="get">
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <input type="text" name="q" value="{{ query }}" placeholder="Search by journal name or research field..." style="flex:1;" autofocus>
+      <select name="mode" style="width:auto;">
+        <option value="name" {{ 'selected' if mode != 'field' }}>By Name</option>
+        <option value="field" {{ 'selected' if mode == 'field' }}>By Field</option>
+      </select>
+      <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+    <div class="form-hint">
+      Try: "strategic management", "organizational behavior", "finance", "economics", "sociology"
+    </div>
+  </form>
+</div>
+
+{% if results is not none %}
+  {% if results %}
+  <div class="card" style="padding:0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Journal</th>
+          <th>Publisher</th>
+          <th>Papers</th>
+          <th>h-index</th>
+          <th>ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for j in results %}
+        <tr>
+          <td><strong>{{ j.name }}</strong></td>
+          <td style="font-size:13px;">{{ j.publisher }}</td>
+          <td>{{ "{:,}".format(j.works_count) }}</td>
+          <td>{{ j.h_index }}</td>
+          <td><code style="font-size:11px;">{{ j.id }}</code></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="form-hint">
+    To add journals to a search, use the journal picker when creating or editing a search topic.
+  </div>
+  {% else %}
+  <div class="card empty-state">
+    <p>No journals found for "{{ query }}".</p>
+  </div>
+  {% endif %}
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.db
+*.html
+!templates/**/*.html
+.ebsco_*
+debug/
+.env
+*.egg-info/
+dist/
+build/
