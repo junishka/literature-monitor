@@ -400,26 +400,26 @@ def view_digest(digest_id):
 # --- Run Now (background thread to avoid timeout) ---
 
 import threading
-
-_run_results = {}  # user_id -> {"status": ..., "total": ...}
+import json as json_lib
 
 @app.route("/run", methods=["POST"])
 @login_required
 def run_now():
     """Start search in background thread, show loading page."""
     user_id = session["user_id"]
-    _run_results[user_id] = {"status": "running"}
+    # Store status in DB settings
+    models.set_setting(user_id, "_run_status", json_lib.dumps({"status": "running"}))
 
     def do_search(uid):
         import traceback
         try:
             total = run_searches_for_user(uid)
-            _run_results[uid] = {"status": "ok", "total": total}
+            models.set_setting(uid, "_run_status", json_lib.dumps({"status": "ok", "total": total}))
         except Exception as e:
             logging.error(f"Run failed: {traceback.format_exc()}")
-            _run_results[uid] = {"status": "error", "message": str(e)}
+            models.set_setting(uid, "_run_status", json_lib.dumps({"status": "error", "message": str(e)}))
 
-    thread = threading.Thread(target=do_search, args=(user_id,))
+    thread = threading.Thread(target=do_search, args=(user_id,), daemon=True)
     thread.start()
     return render_template("running.html")
 
@@ -429,7 +429,11 @@ def run_now():
 def run_status():
     """Poll for search completion."""
     user_id = session["user_id"]
-    result = _run_results.get(user_id, {"status": "unknown"})
+    raw = models.get_setting(user_id, "_run_status", '{"status": "running"}')
+    try:
+        result = json_lib.loads(raw)
+    except Exception:
+        result = {"status": "running"}
     return jsonify(result)
 
 
