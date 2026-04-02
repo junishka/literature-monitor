@@ -39,7 +39,8 @@ def search_openalex(
 
     filter_str = ",".join(filters_base)
 
-    # Search each keyword in title + abstract only (not full text)
+    # Search each keyword in title + abstract via default.search filter
+    # This searches both fields in a single API call per keyword
     seen_ids = set()
     papers = []
 
@@ -47,39 +48,36 @@ def search_openalex(
         if len(papers) >= max_results:
             break
 
-        # Use title.search and abstract.search filters for precision
-        # instead of the broad "search" parameter
-        for field in ["title.search", "abstract.search"]:
-            keyword_filter = f"{filter_str},{field}:{keyword}"
+        keyword_filter = f"{filter_str},default.search:{keyword}"
 
-            params = {
-                "filter": keyword_filter,
-                "sort": "publication_date:desc",
-                "per_page": min(max_results, 50),
-                "mailto": mailto or MAILTO,
-                "page": 1,
-            }
+        params = {
+            "filter": keyword_filter,
+            "sort": "publication_date:desc",
+            "per_page": min(max_results, 50),
+            "mailto": mailto or MAILTO,
+            "page": 1,
+        }
 
-            try:
-                resp = requests.get(BASE_URL, params=params, timeout=30)
-                resp.raise_for_status()
-                data = resp.json()
-            except requests.RequestException as e:
-                logger.error(f"OpenAlex API error for '{keyword}' ({field}): {e}")
+        try:
+            resp = requests.get(BASE_URL, params=params, timeout=15)
+            resp.raise_for_status()
+            data = resp.json()
+        except requests.RequestException as e:
+            logger.error(f"OpenAlex API error for '{keyword}': {e}")
+            continue
+
+        for work in data.get("results", []):
+            work_id = work.get("id", "")
+            if work_id in seen_ids:
                 continue
+            seen_ids.add(work_id)
 
-            for work in data.get("results", []):
-                work_id = work.get("id", "")
-                if work_id in seen_ids:
-                    continue
-                seen_ids.add(work_id)
+            paper = _parse_work(work)
+            papers.append(paper)
 
-                paper = _parse_work(work)
-                papers.append(paper)
-
-            count = data.get("meta", {}).get("count", 0)
-            if count > 0:
-                logger.info(f"  Keyword '{keyword}' ({field}): {count} matches")
+        count = data.get("meta", {}).get("count", 0)
+        if count > 0:
+            logger.info(f"  Keyword '{keyword}': {count} matches")
 
     logger.info(f"OpenAlex: found {len(papers)} unique papers across {len(keywords)} keywords")
     return papers[:max_results]
