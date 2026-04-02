@@ -38,9 +38,28 @@ def login_required(f):
 def load_user():
     g.user = None
     if "user_id" in session:
-        g.user = models.get_user_by_id(session["user_id"])
+        try:
+            g.user = models.get_user_by_id(session["user_id"])
+        except Exception:
+            pass
         if not g.user:
             session.pop("user_id", None)
+
+
+@app.route("/health")
+def health():
+    """Health check — also shows debug info."""
+    import traceback
+    info = {"status": "ok", "db": "unknown"}
+    try:
+        models.init_db()
+        info["db"] = "connected"
+        info["use_postgres"] = models.USE_POSTGRES
+        info["db_url"] = models.DATABASE_URL[:30] + "..." if models.DATABASE_URL else "sqlite"
+    except Exception as e:
+        info["db"] = f"error: {e}"
+        info["traceback"] = traceback.format_exc()
+    return jsonify(info)
 
 
 # --- Auth routes ---
