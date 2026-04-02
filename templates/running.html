@@ -56,48 +56,54 @@ const statusInterval = setInterval(() => {
   document.getElementById('status-text').textContent = messages[msgIndex];
 }, 4000);
 
-// Run the actual search
-fetch('/run/execute')
-  .then(r => r.json())
-  .then(data => {
-    clearInterval(statusInterval);
-    const loadingEl = document.getElementById('loading-status');
-    const resultEl = document.getElementById('result');
-
-    if (data.status === 'ok') {
-      loadingEl.style.display = 'none';
-      if (data.total > 0) {
-        resultEl.innerHTML = `
-          <div class="card" style="background:var(--pink-light); border-color:var(--pink);">
-            <h2 style="margin-bottom:8px;">Found ${data.total} new paper${data.total !== 1 ? 's' : ''}!</h2>
-            <p style="margin-bottom:12px;">Your digest is ready.</p>
-            <a href="/" class="btn btn-primary">Back to Dashboard</a>
-            <a href="/digests" class="btn btn-secondary" style="margin-left:8px;">View Digests</a>
-          </div>`;
-      } else {
-        resultEl.innerHTML = `
-          <div class="card">
-            <h2 style="margin-bottom:8px;">No new papers found</h2>
-            <p style="margin-bottom:12px;">All caught up! Check back later.</p>
-            <a href="/" class="btn btn-primary">Back to Dashboard</a>
-          </div>`;
+// Poll for search completion every 3 seconds
+function checkStatus() {
+  fetch('/run/status')
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'running') {
+        setTimeout(checkStatus, 3000);
+        return;
       }
-      resultEl.style.display = 'block';
-    } else {
-      loadingEl.innerHTML = `
-        <div style="color:var(--error);">
-          <strong>Search failed:</strong> ${data.message}
-        </div>
-        <a href="/" class="btn btn-secondary" style="margin-top:12px;">Back to Dashboard</a>`;
-    }
-  })
-  .catch(err => {
-    clearInterval(statusInterval);
-    document.getElementById('loading-status').innerHTML = `
-      <div style="color:var(--error);">
-        <strong>Connection error.</strong> Please try again.
-      </div>
-      <a href="/" class="btn btn-secondary" style="margin-top:12px;">Back to Dashboard</a>`;
-  });
+
+      clearInterval(statusInterval);
+      const loadingEl = document.getElementById('loading-status');
+      const resultEl = document.getElementById('result');
+
+      if (data.status === 'ok') {
+        loadingEl.style.display = 'none';
+        if (data.total > 0) {
+          resultEl.innerHTML = `
+            <div class="card" style="background:var(--pink-light); border-color:var(--pink);">
+              <h2 style="margin-bottom:8px;">Found ${data.total} new paper${data.total !== 1 ? 's' : ''}!</h2>
+              <p style="margin-bottom:12px;">Your digest is ready.</p>
+              <a href="/" class="btn btn-primary">Back to Dashboard</a>
+              <a href="/digests" class="btn btn-secondary" style="margin-left:8px;">View Digests</a>
+            </div>`;
+        } else {
+          resultEl.innerHTML = `
+            <div class="card">
+              <h2 style="margin-bottom:8px;">No new papers found</h2>
+              <p style="margin-bottom:12px;">All caught up! Check back later.</p>
+              <a href="/" class="btn btn-primary">Back to Dashboard</a>
+            </div>`;
+        }
+        resultEl.style.display = 'block';
+      } else {
+        loadingEl.innerHTML = `
+          <div style="color:var(--error);">
+            <strong>Search failed:</strong> ${data.message || 'Unknown error'}
+          </div>
+          <a href="/" class="btn btn-secondary" style="margin-top:12px;">Back to Dashboard</a>`;
+      }
+    })
+    .catch(() => {
+      // Network blip, retry
+      setTimeout(checkStatus, 3000);
+    });
+}
+
+// Start polling after a short delay
+setTimeout(checkStatus, 2000);
 </script>
 {% endblock %}

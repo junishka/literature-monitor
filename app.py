@@ -397,27 +397,40 @@ def view_digest(digest_id):
     return render_template("digest_view.html", digest=digest)
 
 
-# --- Run Now ---
+# --- Run Now (background thread to avoid timeout) ---
+
+import threading
+
+_run_results = {}  # user_id -> {"status": ..., "total": ...}
 
 @app.route("/run", methods=["POST"])
 @login_required
 def run_now():
-    """Show loading page, then redirect to run-execute."""
+    """Start search in background thread, show loading page."""
+    user_id = session["user_id"]
+    _run_results[user_id] = {"status": "running"}
+
+    def do_search(uid):
+        import traceback
+        try:
+            total = run_searches_for_user(uid)
+            _run_results[uid] = {"status": "ok", "total": total}
+        except Exception as e:
+            logging.error(f"Run failed: {traceback.format_exc()}")
+            _run_results[uid] = {"status": "error", "message": str(e)}
+
+    thread = threading.Thread(target=do_search, args=(user_id,))
+    thread.start()
     return render_template("running.html")
 
 
-@app.route("/run/execute")
+@app.route("/run/status")
 @login_required
-def run_execute():
-    """Actually run the search (called via fetch from the loading page)."""
-    import traceback
-    try:
-        total = run_searches_for_user(session["user_id"])
-        return jsonify({"status": "ok", "total": total})
-    except Exception as e:
-        tb = traceback.format_exc()
-        logging.error(f"Run failed: {tb}")
-        return jsonify({"status": "error", "message": str(e)})
+def run_status():
+    """Poll for search completion."""
+    user_id = session["user_id"]
+    result = _run_results.get(user_id, {"status": "unknown"})
+    return jsonify(result)
 
 
 # --- Template filter ---
