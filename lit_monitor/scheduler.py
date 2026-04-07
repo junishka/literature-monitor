@@ -124,9 +124,10 @@ def start_scheduler(frequency="weekly", day="monday", hour=9):
                           replace_existing=True)
         desc = f"daily at {hour}:00"
     elif frequency == "biweekly":
-        scheduler.add_job(run_all_users, "interval", weeks=2, id="lit_monitor_job",
-                          replace_existing=True)
-        desc = "every 2 weeks"
+        # Use cron on the chosen day/hour, skip even weeks
+        scheduler.add_job(run_all_users, "cron", day_of_week=day_short, hour=hour, minute=0,
+                          week="1-53/2", id="lit_monitor_job", replace_existing=True)
+        desc = f"every 2 weeks on {day}s at {hour}:00"
     elif frequency == "monthly":
         scheduler.add_job(run_all_users, "cron", day=1, hour=hour, minute=0, id="lit_monitor_job",
                           replace_existing=True)
