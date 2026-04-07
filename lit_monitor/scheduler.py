@@ -67,8 +67,8 @@ def run_searches_for_user(user_id: int) -> int:
     # Try to send email using central Gmail account
     sent = False
     if total > 0:
-        sender = GMAIL_SENDER
-        password = GMAIL_PASSWORD
+        sender = os.environ.get("GMAIL_SENDER", "") or GMAIL_SENDER
+        password = os.environ.get("GMAIL_APP_PASSWORD", "") or GMAIL_PASSWORD
         recipients_str = settings.get("email_recipients", "")
         recipients = [r.strip() for r in recipients_str.split(",") if r.strip()]
 
@@ -120,18 +120,20 @@ def start_scheduler(frequency="weekly", day="monday", hour=9):
     hour = int(hour)
 
     if frequency == "daily":
-        scheduler.add_job(run_all_users, "cron", hour=hour, minute=0, id="lit_monitor_job")
+        scheduler.add_job(run_all_users, "cron", hour=hour, minute=0, id="lit_monitor_job",
+                          replace_existing=True)
         desc = f"daily at {hour}:00"
     elif frequency == "biweekly":
-        # Run on the chosen day every week, but only on odd/even weeks
-        scheduler.add_job(run_all_users, "cron", day_of_week=day_short, hour=hour, minute=0,
-                          week="1-53/2", id="lit_monitor_job")
-        desc = f"every 2 weeks on {day}s at {hour}:00"
+        scheduler.add_job(run_all_users, "interval", weeks=2, id="lit_monitor_job",
+                          replace_existing=True)
+        desc = "every 2 weeks"
     elif frequency == "monthly":
-        scheduler.add_job(run_all_users, "cron", day=1, hour=hour, minute=0, id="lit_monitor_job")
+        scheduler.add_job(run_all_users, "cron", day=1, hour=hour, minute=0, id="lit_monitor_job",
+                          replace_existing=True)
         desc = f"monthly on the 1st at {hour}:00"
     else:  # weekly
-        scheduler.add_job(run_all_users, "cron", day_of_week=day_short, hour=hour, minute=0, id="lit_monitor_job")
+        scheduler.add_job(run_all_users, "cron", day_of_week=day_short, hour=hour, minute=0,
+                          id="lit_monitor_job", replace_existing=True)
         desc = f"weekly on {day}s at {hour}:00"
 
     if not scheduler.running:
